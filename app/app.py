@@ -59,9 +59,7 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
 
 /* ── Main content wrapper ─────────────────────────── */
 .main-wrap {
-    padding: 32px 40px 120px;
-    max-width: 860px;
-    margin: 0 auto;
+    padding: 40px 48px 120px;
 }
 
 /* ── Page header ──────────────────────────────────── */
@@ -188,11 +186,7 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
 /* ── Chat input ───────────────────────────────────── */
 [data-testid="stBottom"] {
     background: linear-gradient(to top, #F7F8FA 60%, transparent) !important;
-    padding: 16px 40px 24px !important;
-}
-[data-testid="stChatInput"] {
-    max-width: 860px !important;
-    margin: 0 auto !important;
+    padding: 16px 48px 24px !important;
 }
 [data-testid="stChatInput"] > div {
     background: #FFFFFF !important;
