@@ -5,6 +5,7 @@ docs/
 Vector_DB*/
 # Environment secrets
 .env
+.streamlit/secrets.toml
 # PDF generation script output folder if re-run
 create_sec_filings.py
 
