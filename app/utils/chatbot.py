@@ -31,7 +31,7 @@ def _get_api_key():
 def get_context_retriever_chain(vectordb):
     api_key = _get_api_key()
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-flash-latest",
         temperature=0.1,
         google_api_key=api_key,
     )

@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat&logo=python&logoColor=white)
 ![LangChain](https://img.shields.io/badge/LangChain-0.2%2B-1C3C3C?style=flat&logo=chainlink&logoColor=white)
 ![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-FF6B35?style=flat)
-![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5--flash-4285F4?style=flat&logo=google&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google%20Gemini-2.0--flash-4285F4?style=flat&logo=google&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat&logo=streamlit&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
@@ -69,7 +69,7 @@ You can also upload your own SEC PDF filings via the sidebar to expand the knowl
 
 | Layer | Technology | Why |
 |-------|-----------|-----|
-| LLM | Google Gemini 1.5-flash | Free tier, fast, 1M context window |
+| LLM | Google Gemini 2.0-flash | Free tier, fast, multimodal, 1M context window |
 | Embeddings | Google `embedding-001` | Paired with Gemini; no extra cost |
 | Vector DB | ChromaDB | Open-source, persists to disk, no server needed |
 | RAG Framework | LangChain | Composable chains, well-documented, industry standard |

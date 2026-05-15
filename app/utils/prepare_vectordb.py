@@ -32,8 +32,9 @@ def get_text_chunks(docs):
 def get_vectorstore(pdf_names, from_session_state=False, base_dir="docs"):
     api_key = _get_api_key()
     embedding = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model="models/gemini-embedding-001",
         google_api_key=api_key,
+        task_type="retrieval_document",
     )
     if from_session_state and os.path.exists(VECTORDB_DIR):
         return Chroma(persist_directory=VECTORDB_DIR, embedding_function=embedding)
