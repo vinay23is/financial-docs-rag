@@ -22,13 +22,11 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
 /* ── Hide Streamlit chrome ────────────────────────── */
 #MainMenu, footer, header { display: none !important; }
 [data-testid="stDecoration"] { display: none !important; }
-[data-testid="stMainBlockContainer"] {
-    padding: 0 !important;
+[data-testid="stMain"] { background: #F7F8FA !important; }
+[data-testid="stMainBlockContainer"],
+[data-testid="block-container"] {
+    padding: 40px 48px 120px !important;
     max-width: 100% !important;
-}
-[data-testid="stMain"] {
-    background: #F7F8FA !important;
-    padding: 0 !important;
 }
 
 /* ── Sidebar ──────────────────────────────────────── */
@@ -56,11 +54,6 @@ html, body, [class*="css"], [data-testid="stAppViewContainer"] {
     font-size: 0.78rem !important;
 }
 [data-testid="stSidebar"] small { display: none !important; }
-
-/* ── Main content wrapper ─────────────────────────── */
-.main-wrap {
-    padding: 40px 48px 120px;
-}
 
 /* ── Page header ──────────────────────────────────── */
 .page-header {
@@ -364,8 +357,6 @@ class SECFilingAnalyzer:
         upload_docs = os.listdir("docs")
         self._render_sidebar(upload_docs)
 
-        # Wrapper
-        st.markdown('<div class="main-wrap">', unsafe_allow_html=True)
 
         # Page header
         st.markdown(
@@ -406,8 +397,6 @@ class SECFilingAnalyzer:
                 self._render_empty_state()
         else:
             self._render_empty_state()
-
-        st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Empty state ───────────────────────────────────────────────────────────
     def _render_empty_state(self):
