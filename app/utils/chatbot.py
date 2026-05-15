@@ -4,8 +4,7 @@ from collections import defaultdict
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain.chains.retrieval import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 
 SYSTEM_PROMPT = """You are an expert financial analyst specializing in SEC annual filings (10-K reports).
@@ -28,45 +27,50 @@ def _get_api_key():
     except Exception:
         return os.getenv("GOOGLE_API_KEY")
 
-def get_context_retriever_chain(vectordb):
+def get_response(question, chat_history, vectordb):
     api_key = _get_api_key()
+
+    # Retrieve relevant chunks manually (avoids langchain.chains dependency)
+    retriever = vectordb.as_retriever(search_kwargs={"k": 5})
+    docs = retriever.invoke(question)
+    context = "\n\n".join(doc.page_content for doc in docs)
+
     llm = ChatGoogleGenerativeAI(
         model="gemini-flash-latest",
         temperature=0.1,
         google_api_key=api_key,
     )
-    retriever = vectordb.as_retriever(search_kwargs={"k": 5})
     prompt = ChatPromptTemplate.from_messages([
         ("system", SYSTEM_PROMPT),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
     ])
-    chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
-    return create_retrieval_chain(retriever, chain)
+    chain = prompt | llm | StrOutputParser()
 
-def get_response(question, chat_history, vectordb):
-    chain = get_context_retriever_chain(vectordb)
-    response = chain.invoke({"input": question, "chat_history": chat_history})
-    return response["answer"], response["context"]
+    answer = chain.invoke({
+        "context": context,
+        "chat_history": chat_history,
+        "input": question,
+    })
+    return answer, docs
 
 def chat(chat_history, vectordb):
     user_query = st.chat_input("Ask about any company's financials...")
     if user_query:
         with st.spinner("Analyzing filings..."):
-            response, context = get_response(user_query, chat_history, vectordb)
+            response, docs = get_response(user_query, chat_history, vectordb)
         chat_history = chat_history + [
             HumanMessage(content=user_query),
             AIMessage(content=response),
         ]
         with st.sidebar:
-            if context:
+            if docs:
                 st.markdown("---")
                 st.markdown("**Sources used:**")
                 metadata_dict = defaultdict(list)
-                for doc in context:
-                    meta = doc.metadata
-                    src = os.path.basename(meta.get("source", "Unknown"))
-                    metadata_dict[src].append(meta.get("page", "?"))
+                for doc in docs:
+                    src = os.path.basename(doc.metadata.get("source", "Unknown"))
+                    metadata_dict[src].append(doc.metadata.get("page", 0))
                 for src, pages in metadata_dict.items():
                     page_str = ", ".join(str(p + 1) for p in sorted(set(pages)))
                     st.markdown(f"📄 **{src}** — p. {page_str}")
