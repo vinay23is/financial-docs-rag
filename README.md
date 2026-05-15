@@ -9,7 +9,7 @@
 
 > **Ask plain-English questions about SEC 10-K annual reports and get AI-generated answers backed by real filing data.**
 
-**Live Demo:** [Coming soon — deploy link here]
+**Live Demo:** [financial-docs-rag.streamlit.app](https://financial-docs-rag-bky4wws43jxf6xxvty4yhn.streamlit.app/)
 
 ---
 
@@ -169,6 +169,8 @@ SEC filings use dense financial prose with cross-references. Larger chunks prese
 > *(Add screenshot after deploying)*
 
 ![App Screenshot](Images/screenshot_placeholder.png)
+
+> **[▶ Open Live Demo](https://financial-docs-rag-bky4wws43jxf6xxvty4yhn.streamlit.app/)**
 
 ---
 
