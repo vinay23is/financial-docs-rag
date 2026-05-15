@@ -1,3 +1,14 @@
+# --- SEC Filing Analyzer: project-specific ignores ---
+# Runtime-generated user uploads (not pre-loaded SEC filings)
+docs/
+# ChromaDB vector store (regenerated at runtime)
+Vector_DB*/
+# Environment secrets
+.env
+# PDF generation script output folder if re-run
+create_sec_filings.py
+
+# --- Python standard ignores ---
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

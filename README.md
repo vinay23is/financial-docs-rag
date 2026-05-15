@@ -1,64 +1,194 @@
-# RAG - ChatBot: Retrieval Augmented Generation (RAG) chatbot using Google's Gemini-Pro model, Langchain, ChromaDB, and Streamlit
+# 📊 SEC Filing Analyzer — RAG-Powered Financial Document Chatbot
 
-This RAG-ChatBot is a Python application that allows the user to chat with multiple PDF documents. You ask questions in natural language, in the same way as if you were to ask a human, and the application will provide relevant responses based on the content of the uploaded documents. This app uses Google's Gemini-Pro model to generate accurate answers to your questions, but the model will only answer questions that are about the uploaded documents.
-Here are some key points about the project:
-- Upload Documents: When the app is launched, you can upload a PDF document and chat with the document on the fly, no need to reload the app
-- Offline Documents: If you need to leave the app, when you come back, you won't need to upload the same document again, you can chat with it as soon as the app starts. Also, you can keep uploading documents to chat with all of them at the same time
-- The user interface was crafted with streamlit, with the goal of displaying all necessary information while being extremely simple. The user only has the "upload" button, all the rest is automated by the app
-- The model incorporates the chat history, retaining up to 10 users questions and model responses, so if you ask about something and want more details, you can just say "give me more details about that" and the model will know what you are reffering to
-- For each response, you can check the source in the sidebar, making sure that the model is not making up responses
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat&logo=python&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-0.2%2B-1C3C3C?style=flat&logo=chainlink&logoColor=white)
+![ChromaDB](https://img.shields.io/badge/ChromaDB-Vector%20Store-FF6B35?style=flat)
+![Gemini](https://img.shields.io/badge/Google%20Gemini-1.5--flash-4285F4?style=flat&logo=google&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat&logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
-## RAG - ChatBot Interface: First Boot and In Usage
-The very first time the user launches the app, this will be the screen of the app. Note that the user cannot send any messages, since there are no documents uploaded.
+> **Ask plain-English questions about SEC 10-K annual reports and get AI-generated answers backed by real filing data.**
 
-![user_interface](Images/user_interface.png)
+**Live Demo:** [Coming soon — deploy link here]
 
-The next time that the user launches the app, the chat box will be available and there will be a list of the uploaded documents. If the user tries to upload the same document again, the "process" button will not appear. When the user asks a question, the model will give a response based on the question, the content that was retrieved from the database, and the chat history. In the image below, we can see that the model is aware of the chat history, and that the source of the answer is displayed in the sidebar.
+---
 
-![app_in_use](Images/app_in_use.png)
+## The Problem This Solves
 
-## How it Works
+SEC 10-K annual reports are the gold standard for understanding a public company's financial health, risks, and strategy — but they're dense, jargon-heavy, and often 100+ pages long. Analysts and investors spend hours hunting for specific figures or comparing disclosures across companies.
 
-![project_schema](Images/project_schema.png)
+This project lets you **chat with those filings naturally**:
+- *"What were Apple's biggest risk factors this year?"*
+- *"Compare Tesla's and Alphabet's R&D spending."*
+- *"What did Google's MD&A say about Cloud growth?"*
 
-The main functionality of the app is the loop on the right side of the image. The user asks a question, the app searches for the best response in the database, and the content retrieved from the database is passed to the Large Language Model (LLM), which generates a response based on the question, chat history and content from the database. Here's a more detailed step-by-step of what happens:
-1. Upload PDF: If it's the very first time the app is launched, the user will need to upload a document to chat with. The app checks for a folder called "docs", and creates one if it doesn't exist. All PDF documents will be saved into this folder
-2. Text Chunking: The app extracts the text from the PDF and separates it into chunks of text, with the size being measured by the limit of tokens the embedding model can handle per chunk
-3. Embedding and Saving: These chunks of text pass through an embedding model, that generates vector representations of n dimensions of each text chunk. After that, all vectors are stored in a vector database. In this app, ChromaDB is being used, so that the vectordb is stored in disk, and the app creates a folder called "Vector_DB - Documents", to be the base folder of the database
-4. Similarity Matching: When you ask a question, it is appended to the chat history. Also, the text that you used goes through the same embedding model that the chunks did, creating a vector representation of your question. With this, the app compares it with the text chunks and identifies the most semantically similar ones. It does this by using a distance metric, like the cosine similarity, which measures how close the angles between the vectors are. The closer the angles, the higher the similarity between the vectors
-5. Response Generation: The selected chunks are passed to the language model, which generates a response based on the relevant content of the PDFs, the user question and the chat history. When the LLM outputs the answer, it is appended to the chat history, so the model can use this to have context of the conversation itself, and not only of the documents, since the chat history is composed of users questions and the models answers
+---
 
-When the app gets initialized and there's already processed documents, steps 1-3 are skipped, and the user can automatically chat with these already processed PDFs. The option to upload a PDF is always available, so when the user does upload a new file, the app does steps 1-3 while a "processing" message appears in the sidebar, and the vector database gets updated with the new document. This way, there's no need for a "manual" mode, where the user can only upload a new file, making the usage of the app easier. 
+## How It Works (RAG Architecture)
 
-## App Usage
-To install and use the app, an API key from Google will be needed. For this, you can click [here](https://aistudio.google.com/app/apikey). Accept the terms, and if the option to create an API key is not selectable, just reload the page. Click on "Create API Key" and then click on "Create API key in new project" and copy the key. It's recommended to paste the key into a new txt file or something, so you have easy access.
-Also, to use the app, it's assumed that you have python installed
-
-### Step 1: Create .env file
-Copy this repo or download the files as a zip and extract it. Navigate to the folder where the files README and requirements are located. You will see the app folder too. Create a new txt file and paste this: 
-
-```shell
-GOOGLE_API_KEY = "apikey"
+```
+User Question
+     │
+     ▼
+ Embedding Model (Google text-embedding-001)
+     │
+     ▼
+ ChromaDB Vector Store ◄── SEC 10-K PDFs (pre-indexed)
+     │  (cosine similarity search)
+     ▼
+ Top-K Relevant Chunks
+     │
+     ▼
+ Gemini 1.5-flash (LLM)  ◄── Chat History + System Prompt
+     │
+     ▼
+ Grounded Answer
 ```
 
-Now, paste the API key that you generated into the quotation marks. It should look something like this: GOOGLE_API_KEY = "AIzaSyCJOZtTkyN9rfuXEjTtngeubYTUne"
+1. **Ingestion** — SEC filing PDFs are split into overlapping chunks (2,000 chars / 200 overlap) and embedded using Google's `embedding-001` model.
+2. **Storage** — Vectors are persisted in a local ChromaDB store (no external database needed).
+3. **Retrieval** — On each user query, the question is embedded and the top-5 most semantically similar chunks are retrieved.
+4. **Generation** — The retrieved chunks + conversation history are passed to Gemini 1.5-flash with a domain-specific system prompt, producing a grounded answer.
+5. **Source display** — The sidebar shows which filing pages were used to generate each answer, enabling verification.
 
-Save the file as an environment file, with .env as the name. To do this, when saving the file, click on Type and choose "Unknown(*.). Make sure that the name of the file is .env
+---
 
-When the file is saved, you should see a file named .env with type "Environment File" in the folder, together with the README and requirements files
+## Pre-loaded Companies
 
-### Step 2: Install Packages
-Open a terminal in this folder. You can do this by holding the shift key on the keyboard and right-clicking on the screen. An option to open a terminal should appear. In the terminal, write this to install all the requirements for the app:
+| Company | Ticker | Filing | Source |
+|---------|--------|--------|--------|
+| Apple Inc. | AAPL | FY2025 10-K Summary | SEC EDGAR |
+| Alphabet Inc. | GOOGL | FY2024 10-K Summary | SEC EDGAR |
+| Tesla, Inc. | TSLA | FY2025 10-K Summary | SEC EDGAR |
 
-```shell
+You can also upload your own SEC PDF filings via the sidebar to expand the knowledge base.
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
+|-------|-----------|-----|
+| LLM | Google Gemini 1.5-flash | Free tier, fast, 1M context window |
+| Embeddings | Google `embedding-001` | Paired with Gemini; no extra cost |
+| Vector DB | ChromaDB | Open-source, persists to disk, no server needed |
+| RAG Framework | LangChain | Composable chains, well-documented, industry standard |
+| UI | Streamlit | Rapid prototyping, easy cloud deployment |
+| PDF Parsing | PyPDF | Lightweight, handles multi-page documents |
+
+---
+
+## Run Locally
+
+### Prerequisites
+- Python 3.10+
+- A free [Google AI Studio API key](https://aistudio.google.com/app/apikey) (Gemini)
+
+### Steps
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/vinay23is/financial-docs-rag.git
+cd financial-docs-rag
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # macOS/Linux
+# venv\Scripts\activate         # Windows
+
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### Step 3: Run the app
-In this same terminal, run this command to startup the app:
+# 4. Add your API key
+cp .env.example .env
+# Open .env and replace "your-gemini-api-key-here" with your actual key
 
-```shell
+# 5. Run the app
 streamlit run app/app.py
 ```
 
-A new window on your web browser should automatically appear, with the app ready to be used. To stop the app, simply press CTR+C on the terminal. A message of "stopping" will appear, and the app will shutdown
+The app opens at `http://localhost:8501`. The three SEC filing PDFs are pre-loaded — start chatting immediately.
+
+---
+
+## Deploy on Streamlit Cloud (Free)
+
+1. Push this repo to your GitHub account.
+2. Go to [streamlit.io/cloud](https://streamlit.io/cloud) and sign in with GitHub.
+3. Click **"New app"** → select this repo → set main file to `app/app.py`.
+4. Under **"Advanced settings"** → **Secrets**, add:
+   ```toml
+   GOOGLE_API_KEY = "your-gemini-api-key-here"
+   ```
+5. Click **Deploy**. Done — free hosting, no server management.
+
+---
+
+## Project Structure
+
+```
+financial-docs-rag/
+├── app/
+│   ├── app.py                  # Main Streamlit UI
+│   ├── sec_filings/            # Pre-built SEC 10-K summary PDFs
+│   │   ├── AAPL_10K_Summary.pdf
+│   │   ├── GOOGL_10K_Summary.pdf
+│   │   └── TSLA_10K_Summary.pdf
+│   └── utils/
+│       ├── chatbot.py          # LangChain RAG chain, Gemini integration
+│       ├── prepare_vectordb.py # PDF loading, chunking, ChromaDB creation
+│       ├── save_docs.py        # Handles user file uploads
+│       └── session_state.py    # Streamlit session management, pre-loads SEC filings
+├── .streamlit/
+│   └── config.toml             # Theme and server config
+├── .env.example                # API key template
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Key Design Decisions
+
+**Why RAG instead of fine-tuning?**
+Fine-tuning bakes knowledge into the model weights — it's expensive, requires retraining when filings are updated, and the model can still hallucinate. RAG keeps the source documents as the ground truth and retrieves them at query time, making answers verifiable and the knowledge base easily updateable.
+
+**Why ChromaDB over Pinecone/Weaviate?**
+ChromaDB runs entirely locally and persists to disk — zero infrastructure cost, zero latency to an external service, and no API keys to manage. For a portfolio project and small-to-medium document sets, it's the right tradeoff. Pinecone or Weaviate would be appropriate at production scale.
+
+**Why Gemini 1.5-flash over OpenAI GPT?**
+Gemini 1.5-flash is free on Google AI Studio's tier (15 RPM, 1M TPM), has a massive 1M-token context window, and the `embedding-001` model pairs naturally with it. OpenAI's equivalent usage costs money and adds a paid dependency that makes this project inaccessible to others.
+
+**Why chunk at 2,000 characters with 200 overlap?**
+SEC filings use dense financial prose with cross-references. Larger chunks preserve more context per retrieval; 200-character overlap ensures sentences that span chunk boundaries don't lose meaning. The overlap trades storage for answer quality.
+
+---
+
+## Screenshot
+
+> *(Add screenshot after deploying)*
+
+![App Screenshot](Images/screenshot_placeholder.png)
+
+---
+
+## What I'd Improve with More Time
+
+- **Streaming responses** — stream Gemini tokens to the UI for a more responsive feel
+- **Hybrid search** — combine vector similarity with BM25 keyword search (better recall on specific figure lookups like exact dollar amounts)
+- **Multi-year comparisons** — load multiple years of 10-Ks per company for trend analysis
+- **Table extraction** — use a specialized PDF parser (Camelot/pdfplumber) to better extract financial tables, which PyPDF sometimes mangles
+- **Evaluation** — build a RAGAS evaluation suite to measure answer faithfulness and context recall
+
+---
+
+## About
+
+Built by **Vinay Dodla** as a portfolio project demonstrating practical RAG system design with real-world financial data.
+
+- [GitHub](https://github.com/vinay23is)
+- [LinkedIn](https://linkedin.com/in/vinaydodla)
+
+---
+
+*Data sourced from SEC EDGAR public filings. Not investment advice.*
