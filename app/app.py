@@ -7,91 +7,239 @@ from utils.chatbot import chat
 
 CUSTOM_CSS = """
 <style>
-/* Main background */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Global reset ── */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 [data-testid="stAppViewContainer"] {
-    background: linear-gradient(135deg, #0f1923 0%, #1a2a3a 100%);
+    background: #F0F4F8;
 }
+[data-testid="stMain"] {
+    background: #F0F4F8;
+}
+
+/* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0d1b2a 0%, #1b2d3e 100%);
-    border-right: 1px solid #2a4a6a;
+    background: #0F172A !important;
+    border-right: none !important;
 }
-/* Header */
-.sec-header {
-    background: linear-gradient(135deg, #1B3A6B 0%, #0d2a4a 100%);
-    padding: 1.5rem 2rem;
-    border-radius: 12px;
+[data-testid="stSidebar"] * {
+    color: #CBD5E1 !important;
+}
+[data-testid="stSidebar"] h1 {
+    color: #F8FAFC !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.3px !important;
+}
+[data-testid="stSidebar"] .sidebar-section-title {
+    color: #94A3B8 !important;
+    font-size: 0.65rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+}
+[data-testid="stSidebar"] [data-testid="stFileUploader"] {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px dashed #334155 !important;
+    border-radius: 10px !important;
+}
+[data-testid="stSidebar"] [data-testid="stFileUploader"] * {
+    color: #94A3B8 !important;
+}
+[data-testid="stSidebar"] hr {
+    border-color: #1E293B !important;
+    margin: 0.6rem 0 !important;
+}
+
+/* ── Main content area ── */
+[data-testid="stMainBlockContainer"] {
+    padding-top: 1.5rem !important;
+    padding-bottom: 2rem !important;
+}
+
+/* ── Hero header ── */
+.hero {
+    background: linear-gradient(135deg, #1E3A5F 0%, #1A56DB 100%);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
     margin-bottom: 1.5rem;
-    border: 1px solid #2E6AA3;
-    box-shadow: 0 4px 20px rgba(27, 58, 107, 0.4);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(26, 86, 219, 0.25);
 }
-.sec-header h1 {
-    color: #FFFFFF;
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -0.5px;
+.hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    border-radius: 50%;
 }
-.sec-header p {
-    color: #7EB8F7;
-    font-size: 0.9rem;
-    margin: 0.3rem 0 0;
-}
-/* Company badge */
-.company-badge {
-    display: inline-block;
-    background: rgba(46, 125, 50, 0.15);
-    border: 1px solid #2E7D32;
-    color: #81C784;
-    padding: 0.25rem 0.7rem;
-    border-radius: 20px;
-    font-size: 0.78rem;
+.hero-label {
+    font-size: 0.7rem;
     font-weight: 600;
-    margin: 0.2rem 0.2rem 0.2rem 0;
-}
-/* Sample questions */
-.sample-q-box {
-    background: rgba(27, 58, 107, 0.2);
-    border: 1px solid #2E6AA3;
-    border-radius: 8px;
-    padding: 0.8rem 1rem;
-    margin-bottom: 1rem;
-}
-.sample-q-box p {
-    color: #7EB8F7;
-    font-size: 0.82rem;
-    margin: 0.15rem 0;
-    cursor: pointer;
-}
-.sample-q-box p::before { content: "💬 "; }
-/* Info box */
-.info-box {
-    background: rgba(27, 58, 107, 0.15);
-    border-left: 4px solid #2E6AA3;
-    border-radius: 4px;
-    padding: 0.8rem 1rem;
-    color: #7EB8F7;
-    font-size: 0.88rem;
-}
-/* Chat messages */
-[data-testid="stChatMessage"] {
-    background: rgba(255,255,255,0.04);
-    border-radius: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
     margin-bottom: 0.5rem;
 }
-/* Sidebar text */
-[data-testid="stSidebar"] * {
-    color: #C8D8E8 !important;
+.hero h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
 }
-[data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
-    color: #7EB8F7 !important;
+.hero p {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+    margin: 0;
+    line-height: 1.6;
+    max-width: 560px;
 }
-/* Upload area */
-[data-testid="stFileUploader"] {
-    background: rgba(27, 58, 107, 0.1);
+.hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    margin-top: 1rem;
+    margin-right: 0.4rem;
+}
+
+/* ── Company cards ── */
+.company-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    padding: 1.1rem 1.2rem;
+    height: 100%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+}
+.company-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+.company-card .ticker {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    margin-bottom: 0.6rem;
+    display: inline-block;
+}
+.company-card .name {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 0.2rem;
+}
+.company-card .fy {
+    font-size: 0.72rem;
+    color: #94A3B8;
+    font-weight: 500;
+}
+.aapl-ticker  { background: #FEF3C7; color: #92400E; }
+.googl-ticker { background: #DBEAFE; color: #1E40AF; }
+.tsla-ticker  { background: #D1FAE5; color: #065F46; }
+
+/* ── Welcome / sample Q section ── */
+.welcome-box {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-left: 4px solid #1A56DB;
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.6;
+}
+.section-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #94A3B8;
+    margin: 1.2rem 0 0.6rem;
+}
+.q-pill {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.82rem;
+    color: #334155;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    line-height: 1.4;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.q-pill:hover {
+    border-color: #1A56DB;
+    box-shadow: 0 2px 8px rgba(26,86,219,0.12);
+    color: #1A56DB;
+}
+.q-pill::before { content: "→  "; color: #94A3B8; font-size: 0.75rem; }
+
+/* ── Chat messages ── */
+[data-testid="stChatMessage"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 14px !important;
+    padding: 0.8rem 1rem !important;
+    margin-bottom: 0.6rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+}
+[data-testid="stChatMessage"][data-testid*="user"] {
+    background: #EFF6FF !important;
+    border-color: #BFDBFE !important;
+}
+[data-testid="stChatInput"] > div {
+    background: #FFFFFF !important;
+    border: 1.5px solid #CBD5E1 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+[data-testid="stChatInput"] textarea {
+    color: #1E293B !important;
+    font-size: 0.9rem !important;
+}
+
+/* ── Streamlit component overrides ── */
+[data-testid="stSpinner"] > div { color: #1A56DB !important; }
+.stButton > button {
+    background: #1A56DB !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    padding: 0.4rem 1.2rem !important;
+}
+.stButton > button:hover {
+    background: #1E40AF !important;
+    box-shadow: 0 4px 12px rgba(26,86,219,0.3) !important;
+}
+
+/* ── Source card in sidebar ── */
+.source-item {
+    background: rgba(255,255,255,0.07);
     border-radius: 8px;
+    padding: 0.4rem 0.7rem;
+    margin: 0.25rem 0;
+    font-size: 0.78rem;
+    color: #CBD5E1;
 }
-/* Spinner */
-[data-testid="stSpinner"] { color: #7EB8F7; }
 </style>
 """
 
@@ -99,17 +247,17 @@ SAMPLE_QUESTIONS = [
     "What was Apple's total revenue in its most recent fiscal year?",
     "How does Tesla's net income compare to Alphabet's?",
     "What are the main risk factors for Tesla?",
-    "What percentage of Apple's revenue comes from Services?",
     "What is Alphabet's Google Cloud revenue growth story?",
     "How many employees does each company have?",
-    "What did Tesla's MD&A say about vehicle delivery growth?",
     "Compare the R&D spending of Apple, Google, and Tesla.",
+    "What did Tesla's MD&A say about vehicle delivery growth?",
+    "What percentage of Apple's revenue comes from Services?",
 ]
 
 COMPANY_INFO = {
-    "AAPL_10K_Summary.pdf": {"label": "Apple (AAPL)", "emoji": "🍎", "fy": "FY2025"},
-    "GOOGL_10K_Summary.pdf": {"label": "Alphabet/Google (GOOGL)", "emoji": "🔍", "fy": "FY2024"},
-    "TSLA_10K_Summary.pdf": {"label": "Tesla (TSLA)", "emoji": "⚡", "fy": "FY2025"},
+    "AAPL_10K_Summary.pdf":  {"label": "Apple Inc.",         "ticker": "AAPL",  "emoji": "🍎", "fy": "FY2025", "cls": "aapl-ticker"},
+    "GOOGL_10K_Summary.pdf": {"label": "Alphabet Inc.",      "ticker": "GOOGL", "emoji": "🔍", "fy": "FY2024", "cls": "googl-ticker"},
+    "TSLA_10K_Summary.pdf":  {"label": "Tesla, Inc.",        "ticker": "TSLA",  "emoji": "⚡", "fy": "FY2025", "cls": "tsla-ticker"},
 }
 
 
@@ -118,7 +266,7 @@ class SECFilingAnalyzer:
         os.makedirs("docs", exist_ok=True)
         st.set_page_config(
             page_title="SEC Filing Analyzer",
-            page_icon="📊",
+            page_icon="📈",
             layout="wide",
             initial_sidebar_state="expanded",
         )
@@ -126,26 +274,33 @@ class SECFilingAnalyzer:
         initialize_session_state_variables(st)
         self.docs_files = st.session_state.processed_documents
 
+    # ── Sidebar ─────────────────────────────────────────────────────────────
     def _render_sidebar(self, upload_docs):
         with st.sidebar:
-            st.markdown("## 📊 SEC Filing Analyzer")
-            st.markdown("---")
+            st.markdown(
+                "<h1>📈 SEC Analyzer</h1>"
+                "<p style='font-size:0.75rem;color:#64748B;margin-top:-4px;'>AI-powered 10-K filing Q&A</p>",
+                unsafe_allow_html=True,
+            )
+            st.markdown("<hr>", unsafe_allow_html=True)
 
-            # Pre-loaded companies
-            st.markdown("### 🏢 Pre-loaded Companies")
+            st.markdown("<p class='sidebar-section-title'>Loaded companies</p>", unsafe_allow_html=True)
             for filename, info in COMPANY_INFO.items():
-                status = "✅" if filename in upload_docs else "⏳"
+                loaded = filename in upload_docs
+                dot = "🟢" if loaded else "⚪"
                 st.markdown(
-                    f"{status} {info['emoji']} **{info['label']}** — {info['fy']}",
+                    f"<div style='display:flex;align-items:center;gap:8px;padding:5px 0;'>"
+                    f"<span style='font-size:0.65rem;'>{dot}</span>"
+                    f"<span style='font-size:0.82rem;font-weight:500;color:#E2E8F0;'>{info['label']}</span>"
+                    f"<span style='margin-left:auto;font-size:0.65rem;font-weight:700;color:#64748B;'>{info['ticker']}</span>"
+                    f"</div>",
                     unsafe_allow_html=True,
                 )
-            st.markdown("---")
 
-            # User uploads
-            st.markdown("### 📁 Add Your Own Filings")
-            st.caption("Upload additional SEC PDF filings to expand the knowledge base.")
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown("<p class='sidebar-section-title'>Upload your own filing</p>", unsafe_allow_html=True)
             pdf_docs = st.file_uploader(
-                "Select PDF(s)",
+                "Drop a PDF here",
                 type=["pdf"],
                 accept_multiple_files=True,
                 label_visibility="collapsed",
@@ -155,50 +310,85 @@ class SECFilingAnalyzer:
 
             if len(upload_docs) > len(PRELOADED_FILINGS):
                 extra = [f for f in upload_docs if f not in PRELOADED_FILINGS]
-                st.markdown("**Your uploaded files:**")
+                st.markdown("<p class='sidebar-section-title' style='margin-top:0.8rem;'>Your uploads</p>", unsafe_allow_html=True)
                 for f in extra:
-                    st.markdown(f"📄 {f}")
+                    st.markdown(f"<div class='source-item'>📄 {f}</div>", unsafe_allow_html=True)
 
-            st.markdown("---")
-            st.markdown("### 💡 Sample Questions")
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown("<p class='sidebar-section-title'>Try asking</p>", unsafe_allow_html=True)
             for q in SAMPLE_QUESTIONS[:4]:
-                st.markdown(f"<p style='font-size:0.8rem;color:#7EB8F7;'>• {q}</p>",
-                            unsafe_allow_html=True)
+                st.markdown(
+                    f"<p style='font-size:0.77rem;color:#94A3B8;padding:3px 0;line-height:1.4;'>› {q}</p>",
+                    unsafe_allow_html=True,
+                )
 
-            st.markdown("---")
-            st.caption(
-                "Data sourced from SEC EDGAR public filings. "
-                "Not investment advice. "
-                "[View on GitHub](https://github.com/vinay23is/financial-docs-rag)"
+            st.markdown("<hr>", unsafe_allow_html=True)
+            st.markdown(
+                "<p style='font-size:0.7rem;color:#475569;line-height:1.6;'>"
+                "Data from SEC EDGAR · Not investment advice<br>"
+                "<a href='https://github.com/vinay23is/financial-docs-rag' style='color:#3B82F6;'>View on GitHub ↗</a>"
+                "</p>",
+                unsafe_allow_html=True,
             )
 
+    # ── Company cards row ────────────────────────────────────────────────────
+    def _render_company_cards(self):
+        cols = st.columns(3)
+        for col, (filename, info) in zip(cols, COMPANY_INFO.items()):
+            with col:
+                st.markdown(
+                    f"<div class='company-card'>"
+                    f"<span class='ticker {info['cls']}'>{info['ticker']}</span>"
+                    f"<div class='name'>{info['emoji']} {info['label']}</div>"
+                    f"<div class='fy'>Annual Report · {info['fy']}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+    # ── Welcome screen ───────────────────────────────────────────────────────
+    def _render_welcome(self):
+        st.markdown(
+            "<div class='welcome-box'>"
+            "<strong>Ready to answer your questions.</strong> The SEC 10-K filings for Apple, Alphabet, and Tesla "
+            "are pre-loaded — no upload needed. Ask anything about their financials, risks, strategy, or segment performance."
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown("<p class='section-label'>Suggested questions</p>", unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        for i, q in enumerate(SAMPLE_QUESTIONS):
+            with (col1 if i % 2 == 0 else col2):
+                st.markdown(f"<div class='q-pill'>{q}</div>", unsafe_allow_html=True)
+
+    # ── Main run ─────────────────────────────────────────────────────────────
     def run(self):
         upload_docs = os.listdir("docs")
-
         self._render_sidebar(upload_docs)
 
-        # Header
-        st.markdown("""
-        <div class="sec-header">
-            <h1>📊 SEC Filing Analyzer</h1>
-            <p>Ask questions about Apple, Alphabet (Google), and Tesla's annual financial filings powered by RAG + Gemini AI</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Company badges
-        badges_html = " ".join(
-            f'<span class="company-badge">{info["emoji"]} {info["label"]} {info["fy"]}</span>'
-            for info in COMPANY_INFO.values()
+        # Hero header
+        st.markdown(
+            "<div class='hero'>"
+            "<div class='hero-label'>AI · RAG · Financial Intelligence</div>"
+            "<h1>SEC Filing Analyzer</h1>"
+            "<p>Ask plain-English questions about Apple, Alphabet, and Tesla's annual reports. "
+            "Powered by Retrieval-Augmented Generation and Gemini AI.</p>"
+            "<span class='hero-badge'>🍎 AAPL FY2025</span>"
+            "<span class='hero-badge'>🔍 GOOGL FY2024</span>"
+            "<span class='hero-badge'>⚡ TSLA FY2025</span>"
+            "</div>",
+            unsafe_allow_html=True,
         )
-        st.markdown(f'<div style="margin-bottom:1rem;">{badges_html}</div>',
-                    unsafe_allow_html=True)
+
+        # Company cards
+        self._render_company_cards()
+        st.markdown("<br>", unsafe_allow_html=True)
 
         # Update vectordb if new docs added
         if len(upload_docs) > st.session_state.previous_upload_docs_length:
             st.session_state.vectordb = get_vectorstore(upload_docs, from_session_state=True)
             st.session_state.previous_upload_docs_length = len(upload_docs)
 
-        # Chat area
+        # Chat
         if self.docs_files or st.session_state.uploaded_pdfs:
             st.session_state.chat_history = chat(
                 st.session_state.chat_history,
@@ -208,23 +398,6 @@ class SECFilingAnalyzer:
                 self._render_welcome()
         else:
             self._render_welcome()
-
-    def _render_welcome(self):
-        st.markdown("""
-        <div class="info-box">
-            <strong>Welcome!</strong> The SEC filings for Apple, Alphabet, and Tesla are pre-loaded.
-            Start chatting below — no upload needed. You can also add your own SEC PDFs in the sidebar.
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown("---")
-        st.markdown("#### 💬 Try asking:")
-        cols = st.columns(2)
-        for i, q in enumerate(SAMPLE_QUESTIONS):
-            with cols[i % 2]:
-                st.markdown(
-                    f"<div class='sample-q-box'><p>{q}</p></div>",
-                    unsafe_allow_html=True,
-                )
 
 
 if __name__ == "__main__":
