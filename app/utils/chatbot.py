@@ -1,10 +1,8 @@
 import os
+import json
 import streamlit as st
 from collections import defaultdict
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 
 SYSTEM_PROMPT = """You are an expert financial analyst specializing in SEC annual filings (10-K reports).
@@ -20,6 +18,7 @@ Your job is to answer questions accurately using the retrieved content from thes
 Answer the question using this context from the SEC filings:
 {context}"""
 
+
 def _get_api_key():
     load_dotenv()
     try:
@@ -27,10 +26,75 @@ def _get_api_key():
     except Exception:
         return os.getenv("GOOGLE_API_KEY")
 
-def get_response(question, chat_history, vectordb):
-    api_key = _get_api_key()
 
-    # Retrieve relevant chunks manually (avoids langchain.chains dependency)
+def _get_rag_api_url() -> str | None:
+    """Return the Lambda API endpoint if configured, else None (local mode)."""
+    load_dotenv()
+    try:
+        return st.secrets.get("RAG_API_URL") or os.getenv("RAG_API_URL")
+    except Exception:
+        return os.getenv("RAG_API_URL")
+
+
+def _serialize_history(chat_history: list) -> list:
+    """Convert LangChain message objects to plain dicts for the API."""
+    result = []
+    for msg in chat_history:
+        if isinstance(msg, HumanMessage):
+            result.append({"role": "user", "content": msg.content})
+        elif isinstance(msg, AIMessage):
+            result.append({"role": "assistant", "content": msg.content})
+    return result
+
+
+# ── Remote mode (Lambda) ──────────────────────────────────────────────────────
+
+def _get_response_remote(question: str, chat_history: list, api_url: str) -> tuple[str, list]:
+    import urllib.request
+
+    payload = json.dumps({
+        "query": question,
+        "chat_history": _serialize_history(chat_history),
+    }).encode()
+
+    req = urllib.request.Request(
+        api_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=60) as resp:
+        data = json.loads(resp.read())
+
+    # API Gateway wraps body as a string when invoked through HTTP API
+    if isinstance(data.get("body"), str):
+        data = json.loads(data["body"])
+
+    answer = data.get("answer", "")
+    # Build lightweight doc-like objects so caller code is unchanged
+    sources = data.get("sources", [])
+    fake_docs = [_FakeDoc(s) for s in sources]
+    return answer, fake_docs
+
+
+class _FakeDoc:
+    """Thin wrapper so remote source metadata is compatible with local doc objects."""
+    def __init__(self, source_dict: dict):
+        self.page_content = source_dict.get("snippet", "")
+        self.metadata = {
+            "source": source_dict.get("source", "Unknown"),
+            "page": source_dict.get("page", 1) - 1,  # convert back to 0-indexed
+        }
+
+
+# ── Local mode (direct ChromaDB + Gemini) ────────────────────────────────────
+
+def _get_response_local(question: str, chat_history: list, vectordb) -> tuple[str, list]:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+    from langchain_core.output_parsers import StrOutputParser
+
+    api_key = _get_api_key()
     retriever = vectordb.as_retriever(search_kwargs={"k": 5})
     docs = retriever.invoke(question)
     context = "\n\n".join(doc.page_content for doc in docs)
@@ -54,7 +118,19 @@ def get_response(question, chat_history, vectordb):
     })
     return answer, docs
 
-def chat(chat_history, vectordb):
+
+# ── Public API ────────────────────────────────────────────────────────────────
+
+def get_response(question: str, chat_history: list, vectordb=None) -> tuple[str, list]:
+    api_url = _get_rag_api_url()
+    if api_url:
+        return _get_response_remote(question, chat_history, api_url)
+    if vectordb is None:
+        raise ValueError("Either RAG_API_URL must be set or a vectordb must be provided")
+    return _get_response_local(question, chat_history, vectordb)
+
+
+def chat(chat_history, vectordb=None):
     user_query = st.chat_input("Ask about any company's financials...")
     if user_query:
         with st.spinner("Analyzing filings..."):

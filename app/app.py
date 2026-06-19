@@ -387,11 +387,17 @@ class SECFilingAnalyzer:
             st.session_state.vectordb = get_vectorstore(upload_docs, from_session_state=True)
             st.session_state.previous_upload_docs_length = len(upload_docs)
 
-        # Chat
-        if self.docs_files or st.session_state.uploaded_pdfs:
+        # Determine whether to use the remote Lambda API or local vectordb
+        use_api = bool(os.getenv("RAG_API_URL") or (
+            hasattr(st, "secrets") and st.secrets.get("RAG_API_URL")
+        ))
+
+        # Chat — in API mode we don't need a local vectordb
+        if use_api or self.docs_files or st.session_state.uploaded_pdfs:
+            vectordb_arg = None if use_api else st.session_state.vectordb
             st.session_state.chat_history = chat(
                 st.session_state.chat_history,
-                st.session_state.vectordb,
+                vectordb_arg,
             )
             if not st.session_state.chat_history:
                 self._render_empty_state()
