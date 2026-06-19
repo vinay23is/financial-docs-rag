@@ -1,10 +1,10 @@
 """
 Lambda handler for financial-docs RAG.
 
-Environment variables (set in Lambda console or via deploy.sh):
+Environment variables:
   GOOGLE_API_KEY   – Gemini API key
-  S3_BUCKET        – bucket where the ChromaDB snapshot lives
-  S3_PREFIX        – S3 key prefix for the ChromaDB directory (default: "vectordb/")
+  S3_BUCKET        – bucket where the FAISS snapshot lives
+  S3_PREFIX        – S3 key prefix (default: "vectordb/")
 """
 
 import json
@@ -14,8 +14,7 @@ import tarfile
 import tempfile
 
 import boto3
-import chromadb
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -32,59 +31,54 @@ Your job is to answer questions accurately using the retrieved content from thes
 - Cite specific figures (revenue, net income, EPS, etc.) when available.
 - If a question cannot be answered from the provided context, say so clearly — do not invent numbers.
 - When comparing companies, be precise about which fiscal year each figure refers to.
-- If the user asks about a company not in the loaded documents, let them know they can upload additional filings.
 
 Answer the question using this context from the SEC filings:
 {context}"""
 
-# Module-level cache so warm Lambda invocations skip the S3 download.
+# Cached across warm invocations
 _vectorstore = None
-_vectordb_local_dir = None
 
 
-def _download_vectordb() -> str:
-    """Download ChromaDB snapshot from S3 to /tmp and return the local path."""
+def _download_faiss_index() -> str:
     bucket = os.environ["S3_BUCKET"]
-    prefix = os.environ.get("S3_PREFIX", "vectordb/")
-    s3_key = prefix.rstrip("/") + "/chroma.tar.gz"
+    prefix = os.environ.get("S3_PREFIX", "vectordb").rstrip("/")
+    s3_key = f"{prefix}/faiss_index.tar.gz"
 
-    local_tar = os.path.join(tempfile.gettempdir(), "chroma.tar.gz")
-    local_dir = os.path.join(tempfile.gettempdir(), "chroma_db")
+    local_tar = os.path.join(tempfile.gettempdir(), "faiss_index.tar.gz")
+    local_dir = os.path.join(tempfile.gettempdir(), "faiss_index")
 
-    logger.info("Downloading ChromaDB snapshot from s3://%s/%s", bucket, s3_key)
+    logger.info("Downloading FAISS index from s3://%s/%s", bucket, s3_key)
     boto3.client("s3").download_file(bucket, s3_key, local_tar)
 
     os.makedirs(local_dir, exist_ok=True)
     with tarfile.open(local_tar, "r:gz") as tar:
-        tar.extractall(local_dir)
+        tar.extractall(tempfile.gettempdir())
 
     os.remove(local_tar)
-    logger.info("ChromaDB extracted to %s", local_dir)
+    logger.info("FAISS index extracted to %s", local_dir)
     return local_dir
 
 
-def _get_vectorstore() -> Chroma:
-    global _vectorstore, _vectordb_local_dir
-
+def _get_vectorstore() -> FAISS:
+    global _vectorstore
     if _vectorstore is not None:
         return _vectorstore
 
-    _vectordb_local_dir = _download_vectordb()
-
+    local_dir = _download_faiss_index()
     embedding = GoogleGenerativeAIEmbeddings(
         model="models/gemini-embedding-001",
         google_api_key=os.environ["GOOGLE_API_KEY"],
         task_type="retrieval_document",
     )
-    _vectorstore = Chroma(
-        persist_directory=_vectordb_local_dir,
-        embedding_function=embedding,
+    _vectorstore = FAISS.load_local(
+        local_dir,
+        embedding,
+        allow_dangerous_deserialization=True,
     )
     return _vectorstore
 
 
 def _build_chat_history(raw_history: list) -> list:
-    """Convert [{"role": "user"|"assistant", "content": "..."}] → LangChain messages."""
     messages = []
     for entry in raw_history or []:
         role = entry.get("role", "")
@@ -97,7 +91,6 @@ def _build_chat_history(raw_history: list) -> list:
 
 
 def handler(event, context):
-    # Support both direct Lambda invocation and API Gateway proxy payloads.
     body = event
     if "body" in event:
         raw = event["body"]
@@ -116,12 +109,9 @@ def handler(event, context):
         logger.exception("Failed to load vector store")
         return _response(500, {"error": f"Vector store unavailable: {exc}"})
 
-    # Retrieval
-    retriever = vectorstore.as_retriever(search_kwargs={"k": k})
-    docs = retriever.invoke(query)
+    docs = vectorstore.similarity_search(query, k=k)
     context_text = "\n\n".join(doc.page_content for doc in docs)
 
-    # Generation
     llm = ChatGoogleGenerativeAI(
         model="gemini-flash-latest",
         temperature=0.1,
@@ -134,14 +124,12 @@ def handler(event, context):
     ])
     chain = prompt | llm | StrOutputParser()
 
-    chat_history = _build_chat_history(raw_history)
     answer = chain.invoke({
         "context": context_text,
-        "chat_history": chat_history,
+        "chat_history": _build_chat_history(raw_history),
         "input": query,
     })
 
-    # Build source metadata
     sources = []
     seen = set()
     for doc in docs:
