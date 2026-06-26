@@ -139,7 +139,7 @@ def handler(event, context):
         key = (src, page)
         if key not in seen:
             seen.add(key)
-            sources.append({"source": src, "page": page + 1, "snippet": doc.page_content[:300]})
+            sources.append({"source": src, "page": page + 1, "snippet": doc.page_content[:1500]})
 
     return _response(200, {"answer": answer, "sources": sources})
 
